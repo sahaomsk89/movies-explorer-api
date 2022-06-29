@@ -2,15 +2,16 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const { errors } = require('celebrate');
-const routes = require('./routes/index');
 const cors = require('cors');
+const routes = require('./routes/index');
+
 const NotFoundError = require('./errors/NotFoundErr');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const app = express();
 const { PORT = 3000 } = process.env;
 
-mongoose.connect('mongodb://localhost:27017/mestodb');
+mongoose.connect('mongodb://localhost:27017/bitfilmsdb');
 
 app.use(express.json());
 app.use(requestLogger);
