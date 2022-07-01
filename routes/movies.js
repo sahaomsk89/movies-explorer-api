@@ -1,11 +1,18 @@
 const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
-
+const validator = require('validator');
 const {
   getMovies,
   createMovies,
   deleteMovie,
 } = require('../controllers/movies');
+
+const validateURL = (value) => {
+  if (!validator.isURL(value, { require_protocol: true })) {
+    throw new Error('Неправильный формат ссылки');
+  }
+  return value;
+};
 
 router.get('/', getMovies);
 router.post('/', celebrate({
@@ -16,9 +23,9 @@ router.post('/', celebrate({
     movieId: Joi.number().required(),
     year: Joi.string().required(),
     description: Joi.string().required(),
-    image: Joi.string().required().regex(/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.,~#?&//=!]*$)/),
-    trailerLink: Joi.string().required().regex(/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.,~#?&//=!]*$)/),
-    thumbnail: Joi.string().required().regex(/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.,~#?&//=!]*$)/),
+    image: Joi.string().uri().custom(validateURL).required(),
+    trailerLink: Joi.string().uri().custom(validateURL).required(),
+    thumbnail: Joi.string().uri().custom(validateURL).required(),
     nameRU: Joi.string().required().min(2).max(30),
     nameEN: Joi.string().required().min(2).max(30),
   }),

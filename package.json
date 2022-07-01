@@ -1,6 +1,7 @@
 {
   "name": "movies-explorer-api",
   "version": "1.0.0",
+  "description": "серверная часть дипломной работы для регистрации и авторизации пользователей",
   "main": "index.js",
   "scripts": {
     "start": "node app.js",
@@ -12,7 +13,7 @@
     "url": "git+https://github.com/sahaomsk89/movies-explorer-api.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "UstinovAlexander",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/sahaomsk89/movies-explorer-api/issues"

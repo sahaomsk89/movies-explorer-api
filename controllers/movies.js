@@ -1,12 +1,12 @@
-const Movie = require('../models/movie');
-const NotFoundError = require('../errors/NotFoundErr');
-const WrongDataErr = require('../errors/WrongDataErr');
-const CannotBeDeletedError = require('../errors/CannotBeDeleted');
+const Movie = require("../models/movie");
+const NotFoundError = require("../errors/NotFoundErr");
+const WrongDataErr = require("../errors/WrongDataErr");
+const CannotBeDeletedError = require("../errors/CannotBeDeleted");
 
 module.exports.getMovies = (req, res, next) => {
-  Movie.find({})
-    .populate('owner')
-    .then((movie) => res.send(movie))
+  const owner = req.user._id;
+  Movie.find({ owner })
+    .then((movies) => res.send(movies))
     .catch((err) => next(err));
 };
 
@@ -18,7 +18,7 @@ module.exports.createMovies = (req, res, next) => {
     year,
     description,
     image,
-    trailer,
+    trailerLink,
     thumbnail,
     movieId,
     nameRU,
@@ -31,7 +31,7 @@ module.exports.createMovies = (req, res, next) => {
     year,
     description,
     image,
-    trailer,
+    trailerLink,
     thumbnail,
     movieId,
     nameRU,
@@ -40,8 +40,8 @@ module.exports.createMovies = (req, res, next) => {
   })
     .then((movie) => res.status(201).send(movie))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new WrongDataErr('неверные данные'));
+      if (err.name === "ValidationError") {
+        next(new WrongDataErr("неверные данные"));
         return;
       }
       next(err);
@@ -49,25 +49,25 @@ module.exports.createMovies = (req, res, next) => {
 };
 
 module.exports.deleteMovie = (req, res, next) => {
-  Movie.findById(req.params.movieId).then((movie) => {
-    if (!movie) {
-      throw new NotFoundError('Карточка не найдена');
-    }
-    if (req.user._id === movie.owner.toString()) {
-      movie.findByIdAndRemove(req.params.movieId)
-        .then(() => {
-          res.send(movie);
-        })
-        .catch((err) => {
-          if (err.name === 'CastError') {
-            next(new WrongDataErr('неверные данные'));
-            return;
-          }
-          next(err);
-        });
-      return;
-    }
-    throw new CannotBeDeletedError('Невозможно удалить карту других пользователей');
-  })
-    .catch((err) => next(err));
+  const userId = req.user._id;
+  Movie.findById(req.params.movieId)
+    .orFail(new NotFoundError("фильм не найден"))
+    .then((movie) => {
+      if (movie.owner.toString() !== userId) {
+        next(
+          new CannotBeDeletedError(
+            "Вы не можете удалить карточку фильма, добавленную другим человеком"
+          )
+        );
+      }
+      Movie.findByIdAndDelete(req.params.movieId)
+        .then(() => res.status(200).send(movie))
+        .catch(next);
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        next(new WrongDataErr("неверные данные"));
+      }
+      next(err);
+    });
 };
